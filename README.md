@@ -6,4 +6,4 @@ generic test runner for Emacs, heavily inspired by [vim-test](https://github.com
 
 - [x] pytest
 
-- [-] jest
+- [x] jest

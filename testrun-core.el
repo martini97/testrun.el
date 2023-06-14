@@ -99,11 +99,54 @@
        ("all" nil)))
    testrun-pytest-separator))
 
+(defun testrun--jest-node-test-p (node test-keywords)
+  "Verify if NODE is a test."
+  (let* ((child (treesit-node-child node 0))
+         (text (treesit-node-text child t))
+         (keyword (car-safe (split-string text "\\."))))
+    (not (null (member keyword test-keywords)))))
+
+(defun testrun--jest-node-name (node)
+  "Get jest name for NODE."
+  (when-let* ((arguments (treesit-node-child-by-field-name node "arguments"))
+              (name-node (treesit-node-child (treesit-node-child arguments 1) 1))
+              (name (treesit-node-text name-node t)))
+    name))
+
+(defun testrun--jest-escape (str)
+  "Escape STR following jest rules."
+  (format "'%s'"
+          (thread-last str
+                       (s-replace "'" "'\"'\"'")
+                       (s-replace "(" "\\(")
+                       (s-replace ")" "\\)"))))
+
+(defun testrun--jest-get-test-by-keywords (&rest keywords)
+  "Get jest path for test by KEYWORDS."
+  (when-let* ((nodes (testrun--treesit-get-nodes-by-type "call_expression"))
+              (keywords (seq-filter
+                         #'(lambda (n) (testrun--jest-node-test-p n keywords))
+                         nodes))
+              (names (seq-map #'testrun--jest-node-name keywords)))
+    (list "-t" (testrun--jest-escape (string-join names " ")))))
+
+(defun testrun--jest-get-test (type)
+  "Get jest test for TYPE."
+  (string-join
+   (let ((filename (testrun--file-name)))
+     (pcase type
+       ("nearest" `(,filename . ,(testrun--jest-get-test-by-keywords "it" "test" "describe")))
+       ("namespace" `(,filename . ,(testrun--jest-get-test-by-keywords "describe")))
+       ("file" `(,filename))
+       ("all" nil)))
+   " "))
+
 (defun testrun--get-test (type runner)
   "Get test path for TYPE and RUNNER."
   (pcase runner
     ('pytest (testrun--pytest-get-test type))
-    (t (user-error "Unknown runner \"%s\"" runner))))
+    ('jest (testrun--jest-get-test type))
+    (_ (user-error "Unknown runner \"%s\"" runner))))
 
 (defun testrun--comint-p (runner)
   "Check if RUNNER requires `comint-mode'."
@@ -125,21 +168,25 @@
 ;;;###autoload
 (defun testrun-nearest ()
   "Shortcut to run the nearest test."
+  (interactive)
   (testrun-run "nearest"))
 
 ;;;###autoload
 (defun testrun-namespace ()
   "Shortcut to run all tests in namespace."
+  (interactive)
   (testrun-run "namespace"))
 
 ;;;###autoload
 (defun testrun-file ()
   "Shortcut to run all tests in file."
+  (interactive)
   (testrun-run "file"))
 
 ;;;###autoload
 (defun testrun-all ()
   "Shortcut to run all tests."
+  (interactive)
   (testrun-run "all"))
 
 (provide 'testrun-core)
