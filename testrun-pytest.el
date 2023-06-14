@@ -48,8 +48,8 @@
                                     (testrun-treesit--get-nodes-by-type
                                      "class_definition"))))
        ("file" (list filename))
-       ("all" nil))))
-  testrun-pytest-separator)
+       ("all" nil)))
+   testrun-pytest-separator))
 
 (provide 'testrun-pytest)
 ;;; testrun-pytest.el ends here
