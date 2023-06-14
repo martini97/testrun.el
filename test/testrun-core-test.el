@@ -26,9 +26,6 @@
 (require 'ert)
 (require 'el-mock)
 
-(require 'testrun)
-(require 'testrun-core)
-
 (ert-deftest test-core-testrun--resolve-command ()
   "Tests for `testrun--resolve-command'."
   (should (equal (testrun--resolve-command '("cmd")) '("cmd")))

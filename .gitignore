@@ -1,1 +1,3 @@
 /.cask/
+*-autoloads.el
+*.elc

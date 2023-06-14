@@ -23,10 +23,20 @@
 
 ;;; Code:
 
-(setq load-prefer-newer t)
+(setq load-prefer-newer t
+      load-path (append (list default-directory) load-path)
+      python-indent-guess-indent-offset nil)
+
+(require 'cl-lib)
+(require 'testrun)
+(require 'testrun-treesit)
+(require 'testrun-pytest)
+(require 'testrun-jest)
 
 (cl-defmacro testrun-treesit-test ((&key language mode content position) &rest body)
-  "Helper to open test/test-prelude.elan asset on a buffer."
+  "Helper to open test/test-prelude.elan asset on a buffer.
+
+BODY is the actual tests that will be run."
   (declare (indent 1) (debug (sexp body)))
   `(with-temp-buffer
      (funcall #',mode)
@@ -36,8 +46,7 @@
      (goto-char (point-min))
      (insert-file (expand-file-name ,content "test/assets/"))
      (goto-char ,position)
-     ,@body
-     ))
+     ,@body))
 
 (provide 'test-prelude)
 ;;; test-prelude.el ends here

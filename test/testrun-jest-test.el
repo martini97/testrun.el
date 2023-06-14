@@ -26,9 +26,6 @@
 (require 'ert)
 (require 'el-mock)
 
-(require 'testrun)
-(require 'testrun-core)
-
 (ert-deftest test-testrun-jest ()
   "Test jest integration with testrun."
   (testrun-treesit-test (:language javascript :mode js-ts-mode :content "javascriptJest.test.js" :position 775)

@@ -28,9 +28,6 @@
 (require 'ert)
 (require 'el-mock)
 
-(require 'testrun)
-(require 'testrun-core)
-
 (ert-deftest test-core-testrun--pytest-inside-class ()
   "Test `testrun--pytest-get-test' inside class."
   (with-mock
