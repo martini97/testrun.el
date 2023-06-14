@@ -29,15 +29,15 @@
 (require 'el-mock)
 
 (ert-deftest test-core-testrun--pytest-inside-class ()
-  "Test `testrun--pytest-get-test' inside class."
+  "Test `testrun-pytest-get-test' inside class."
   (with-mock
     (stub buffer-file-name => (expand-file-name "test/assets/test_python_pytest.py" default-directory))
     (stub project-current => (list 'vc 'Git default-directory))
     (testrun-treesit-test (:language python :mode python-ts-mode :content "test_python_pytest.py" :position 215)
-      (should (equal (testrun--pytest-get-test "nearest") "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace"))
-      (should (equal (testrun--pytest-get-test "namespace") "test/assets/test_python_pytest.py::TestWithNamespace"))
-      (should (equal (testrun--pytest-get-test "file") "test/assets/test_python_pytest.py"))
-      (should (equal (testrun--pytest-get-test "all") "")))))
+      (should (equal (testrun-pytest-get-test "nearest") "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace"))
+      (should (equal (testrun-pytest-get-test "namespace") "test/assets/test_python_pytest.py::TestWithNamespace"))
+      (should (equal (testrun-pytest-get-test "file") "test/assets/test_python_pytest.py"))
+      (should (equal (testrun-pytest-get-test "all") "")))))
 
 (ert-deftest test-core-testrun--pytest-root-level ()
   "Test `testrun--pytest-get-test' at root level test."
@@ -45,10 +45,10 @@
     (stub buffer-file-name => (expand-file-name "test/assets/test_python_pytest.py" default-directory))
     (stub project-current => (list 'vc 'Git default-directory))
     (testrun-treesit-test (:language python :mode python-ts-mode :content "test_python_pytest.py" :position 80)
-      (should (equal (testrun--pytest-get-test "nearest") "test/assets/test_python_pytest.py::test_root_level"))
-      (should (equal (testrun--pytest-get-test "namespace") "test/assets/test_python_pytest.py"))
-      (should (equal (testrun--pytest-get-test "file") "test/assets/test_python_pytest.py"))
-      (should (equal (testrun--pytest-get-test "all") "")))))
+      (should (equal (testrun-pytest-get-test "nearest") "test/assets/test_python_pytest.py::test_root_level"))
+      (should (equal (testrun-pytest-get-test "namespace") "test/assets/test_python_pytest.py"))
+      (should (equal (testrun-pytest-get-test "file") "test/assets/test_python_pytest.py"))
+      (should (equal (testrun-pytest-get-test "all") "")))))
 
 (ert-deftest test-testrun-pytest ()
   "Test if it calls compile with the expected parameters."
