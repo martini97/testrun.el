@@ -77,8 +77,8 @@
        ("namespace" (append (list filename)
                             (testrun-jest--get-test-by-keywords "describe")))
        ("file" (list filename))
-       ("all" nil))))
-  " ")
+       ("all" nil)))
+   " "))
 
 (provide 'testrun-jest)
 ;;; testrun-jest.el ends here
