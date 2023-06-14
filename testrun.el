@@ -5,7 +5,7 @@
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
 ;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "30.1") project treesit cl-lib)
+;; Package-Requires: ((emacs "30.1") project cl-lib)
 ;; Keywords: tests
 
 ;; This file is NOT part of GNU Emacs.
