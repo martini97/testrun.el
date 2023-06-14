@@ -30,8 +30,7 @@
 
 (require 'elisp-lint)
 
-(setq sentence-end-double-space nil
-      checkdoc-common-verbs-wrong-voice (assoc-delete-all "tests" checkdoc-common-verbs-wrong-voice))
+(setq sentence-end-double-space nil)
 
 (setq-default indent-tabs-mode nil
               fill-column 100)
