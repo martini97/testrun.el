@@ -26,8 +26,11 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
+(require 's)
 (require 'project)
 (require 'treesit)
+
 (require 'testrun)
 
 (defun testrun--project-root ()
