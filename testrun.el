@@ -141,6 +141,8 @@
          (runner-cmd (testrun--get-runner-cmd runner))
          (test (testrun--get-test type runner))
          (with-comint (testrun--comint-p runner))
+         (root (testrun--project-root))
+         (default-directory root)
          (compilation-buffer-name-function testrun-compilation-buffer-name-function)
          (cmd (string-trim (s-join " " (append runner-cmd (list test))))))
     (setq-local compile-command cmd)
