@@ -104,24 +104,34 @@
       (testrun-core--resolve-runner-command cmd)
     (user-error "Could not find command for runner \"%s\"" runner)))
 
-(defun testrun-core--comint-p (runner)
+(defun testrun--comint-p (runner)
   "Check if RUNNER requires `commint-mode'."
   (not (null (member runner testrun-comint-runners))))
 
+(defun testrun--get-test-cmd (runner scope)
+  "Get test command for compile.
+
+RUNNER is the runner symbol, SCOPE is the test scope."
+  (let* ((runner-cmd (testrun--get-runner-cmd runner))
+         (test (testrun--get-test scope runner)))
+    (string-trim (string-join (append runner-cmd (list test)) " "))))
+
+(defun testrun--compile (command with-comint root)
+  "Compile COMMAND WITH-COMINT at ROOT."
+  (testrun-core--remember root command with-comint)
+  (let ((compilation-buffer-name-function testrun-compilation-buffer-name-function)
+        (default-directory root))
+    (compile command with-comint)))
+
 ;;;###autoload
-(defun testrun-run (type)
-  "Run test for TYPE."
-  (interactive (list (completing-read "Type: " '("nearest" "namespace" "file" "all"))))
+(defun testrun-run (scope)
+  "Run test for SCOPE."
+  (interactive (list (completing-read "Scope: " '("nearest" "namespace" "file" "all"))))
   (let* ((runner (testrun--get-runner))
-         (runner-cmd (testrun--get-runner-cmd runner))
-         (test (testrun--get-test type runner))
-         (with-comint (testrun-core--comint-p runner))
+         (cmd (testrun--get-test-cmd runner scope))
          (root (testrun-core--root))
-         (default-directory root)
-         (compilation-buffer-name-function testrun-compilation-buffer-name-function)
-         (cmd (string-trim (string-join (append runner-cmd (list test)) " "))))
-    (setq-local compile-command cmd)
-    (compile cmd with-comint)))
+         (with-comint (testrun--comint-p runner)))
+    (testrun--compile cmd with-comint root)))
 
 ;;;###autoload
 (defun testrun-nearest ()
@@ -146,6 +156,17 @@
   "Shortcut to run every test in the suite."
   (interactive)
   (testrun-run "all"))
+
+;;;###autoload
+(defun testrun-last ()
+  "Shortcut to run the last test."
+  (interactive)
+  (if-let* ((root (testrun-core--root))
+            (last-known (testrun-core--get-last root)))
+      (let ((cmd (car last-known))
+            (with-comint (nth 1 last-known)))
+        (testrun--compile cmd with-comint root))
+    (user-error "No last known test")))
 
 (provide 'testrun)
 

@@ -32,6 +32,9 @@
 
 (require 'project)
 
+(defvar testrun-core--last-tests nil
+  "Store previous test run, so we can trigger them again.")
+
 (defun testrun-core--root ()
   "Get root directory for compilation.
 
@@ -71,6 +74,22 @@ like the `npx' symbol which is translated into the node_modules/.bin."
                 (cmd-full (cl-substitute exe exe-name without-npx)))
       (setq cmd cmd-full))
     cmd))
+
+(defun testrun-core--remember (root cmd with-comint)
+  "Remember compilation command for later use.
+
+Store ROOT, CMD and WITH-COMINT in `testrun-core--last-tests'
+so we can retrieve them later."
+  (assoc-delete-all root testrun-core--last-tests)
+  (push `(,root . (,cmd ,with-comint)) testrun-core--last-tests))
+
+(defun testrun-core--get-last (root)
+  "Get last known compile command for ROOT.
+
+If there's a command returns the command and the comint flag,
+otherwise returns nil."
+  (when-let ((known (assoc root testrun-core--last-tests)))
+    (cdr known)))
 
 (provide 'testrun-core)
 ;;; testrun-core.el ends here
