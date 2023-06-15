@@ -5,7 +5,7 @@
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
 ;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "30.1"))
+;; Package-Requires: ((emacs "30.1") (project "0.9.8"))
 ;; Keywords: tests convenience
 ;; Homepage: https://github.com/martini97/testrun.el
 
