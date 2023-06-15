@@ -42,7 +42,8 @@
   :group 'tools)
 
 (defcustom testrun-runners '((pytest . ("pytest"))
-                             (jest . (npx "jest")))
+                             (jest . (npx "jest"))
+                             (ert . ("cask" "exec" "ert-runner")))
   "Alist of test runner commands."
   :type '(alist :key-type (symbol :tag "Runner")
                 :value-type
@@ -56,7 +57,8 @@
                                 (js-ts-mode . jest)
                                 (typescript-mode . jest)
                                 (typescript-ts-mode . jest)
-                                (tsx-ts-mode . jest))
+                                (tsx-ts-mode . jest)
+                                (emacs-lisp-mode . ert))
   "Alist mapping major mode names to runners to use in thos modes."
   :type '(alist :key-type (choice (symbol :tag "Major mode")
                                   (string :tag "Buffer name regexp"))
@@ -80,7 +82,8 @@
 
 (defvar testrun-runner-function-alist
   '((pytest . testrun-pytest-get-test)
-    (jest . testrun-jest-get-test)))
+    (jest . testrun-jest-get-test)
+    (ert . testrun-ert-get-test)))
 
 (defun testrun--get-test (type runner)
   "Get test path for TYPE and RUNNER."
