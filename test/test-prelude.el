@@ -32,21 +32,48 @@
 (require 'testrun-treesit)
 (require 'testrun-pytest)
 (require 'testrun-jest)
+(require 'testrun-ert)
 
-(cl-defmacro testrun-treesit-test ((&key language mode content position) &rest body)
-  "Helper to open test/test-prelude.elan asset on a buffer.
+(cl-defmacro test-testrun-treesit-setup (&rest args)
+  "Setup test buffer for treesiter with ARGS.
 
-BODY is the actual tests that will be run."
-  (declare (indent 1) (debug (sexp body)))
+:mode is the mode to activate
+:language is the treesitter language
+:asset is the filename of the asset to load
+:position is the point in the file to go to
+:body is the test to run in the buffer context, since I suck at
+elisp it only supports a `progn'."
+  (declare (indent defun) (debug (sexp body)))
   `(with-temp-buffer
-     (funcall #',mode)
-     (treesit-parser-create ',language)
+     (funcall #',(plist-get args :mode))
+     (treesit-parser-create ',(plist-get args :language))
      (switch-to-buffer (current-buffer))
      (erase-buffer)
      (goto-char (point-min))
-     (insert-file (expand-file-name ,content "test/assets/"))
-     (goto-char ,position)
-     ,@body))
+     (insert-file-contents (expand-file-name ,(plist-get args :asset) "test/assets/"))
+     (goto-char ,(plist-get args :position))
+     (let ((buffer-file-name (expand-file-name ,(plist-get args :asset) "test/assets/")))
+       ,(plist-get args :body))))
+
+(cl-defmacro test-testrun-setup (&rest args)
+  "Setup test buffer with ARGS.
+
+:mode is the mode to activate
+:asset is the filename of the asset to load
+:position is the point in the file to go to
+:body is the test body"
+  (declare (indent defun) (debug (sexp body)))
+  `(cl-letf (((symbol-function 'project-current)
+              (lambda () (list 'vc 'Git default-directory))))
+     (with-temp-buffer
+       (funcall #',(plist-get args :mode))
+       (switch-to-buffer (current-buffer))
+       (erase-buffer)
+       (goto-char (point-min))
+       (insert-file-contents (expand-file-name ,(plist-get args :asset) "test/assets/"))
+       (goto-char ,(plist-get args :position))
+       (let ((buffer-file-name (expand-file-name ,(plist-get args :asset) "test/assets/")))
+         ,(plist-get args :body)))))
 
 (provide 'test-prelude)
 ;;; test-prelude.el ends here

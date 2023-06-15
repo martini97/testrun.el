@@ -23,61 +23,86 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'el-mock)
+(require 'cl-macs)
 
-(ert-deftest test-core-testrun--resolve-command ()
-  "Tests for `testrun--resolve-command'."
-  (should (equal (testrun--resolve-command '("cmd")) '("cmd")))
-  (should (equal (testrun--resolve-command '("cmd" "args" "list")) '("cmd" "args" "list")))
-  ;; when there's a executable with the given name in the node_modules, use it.
-  (with-mock
-    (stub file-executable-p => t)
-    (stub expand-file-name => "node_modules/.bin/cmd")
-    (should (equal (testrun--resolve-command '(npx "cmd" "args"))
-                   '("node_modules/.bin/cmd" "args"))))
-  ;; when there isn't a executable with the given name, try to use one from $PATH.
-  (with-mock
-    (stub file-executable-p => nil)
-    (should (equal (testrun--resolve-command '(npx "cmd" "args"))
-                   '("cmd" "args")))))
+(ert-deftest test-testrun-core--root ()
+  "This function should return the compilation root or `default-directory'."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git "/project/root"))))
+    (should (equal (testrun-core--root) "/project/root")))
+  (let ((default-directory "/default/directory"))
+    (cl-letf (((symbol-function 'project-current)
+               (lambda () nil)))
+      (should (equal (testrun-core--root) default-directory)))))
 
-(ert-deftest test-core-testrun--get-runner ()
-  "Tests for `testrun--get-runner'."
-  (let ((testrun-mode-alist '((test-mode . runner))))
-    (let ((major-mode 'test-mode))
-      (should (equal (testrun--get-runner) 'runner)))
+(ert-deftest test-testrun-core--file-name ()
+  "This function should return the current variable `buffer-file-name' relative to the compilation root."
+  (let ((buffer-file-name "/testrun/buffer/file/name.el")
+        (expected-file-name "file/name.el"))
+    (cl-letf (((symbol-function 'project-current)
+               (lambda () (list 'vc 'Git "/testrun/buffer"))))
+      (should (equal (testrun-core--file-name) expected-file-name)))
+    (cl-letf (((symbol-function 'project-current)
+               (lambda () nil)))
+      (let ((default-directory "/testrun/buffer"))
+        (should (equal (testrun-core--file-name) expected-file-name))))))
 
-    (let ((major-mode 'unknown-mode))
-      (should (null (testrun--get-runner))))))
+(ert-deftest test-testrun-core--find-node-modules-exe ()
+  "Should return the path for the exe binary.
 
-(ert-deftest test-core-testrun--get-runner-cmd ()
-  "Tests for `testrun--get-runner-cmd'."
-  (let ((testrun-runners '((pytest . ("pytest" "--disable-warnings"))
-                           (jest . (npx "jest"))
-                           (jest-ci . ("CI=true" npx "jest")))))
-    (with-mock
-     (stub file-executable-p => t)
-     (stub expand-file-name => "node_modules/.bin/jest")
-     (should (equal (testrun--get-runner-cmd 'jest) '("node_modules/.bin/jest")))
-     (should (equal (testrun--get-runner-cmd 'jest-ci) '("CI=true" "node_modules/.bin/jest"))))
-    (should (equal (testrun--get-runner-cmd 'pytest) '("pytest" "--disable-warnings")))
-    (should-error (testrun--get-runner-cmd 'unknown) :type 'user-error)))
+If the binary exists inside the node modules bin directory and
+is executable than it should return it, otherwise it should return
+the the binary as is."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git "/testrun/buffer")))
+            ((symbol-function 'file-executable-p)
+             (lambda (file)
+               ;; it should call `file-executable-p' with the full path
+               ;; to the binary in node modules.
+               (should (equal file "/testrun/buffer/node_modules/.bin/exe"))
+               t)))
+    (should (equal (testrun-core--find-node-modules-exe "exe")
+                   "/testrun/buffer/node_modules/.bin/exe")))
 
-(ert-deftest test-core-testrun--project-root ()
-  "Tests for `testrun--project-root'."
-  (with-mock
-    (stub project-current => (list 'vc 'Git "/project/root"))
-    (should (equal (testrun--project-root) "/project/root"))
-    (stub project-current => nil)
-    (should (equal (testrun--project-root) default-directory))))
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git "/testrun/buffer")))
+            ((symbol-function 'file-executable-p)
+             (lambda (file) nil)))
+    (should (equal (testrun-core--find-node-modules-exe "exe")
+                   "exe"))))
 
-(ert-deftest test-core-testrun--file-name ()
-  "Tests for `testrun--file-name'."
-  (with-mock
-    (stub project-current => (list 'vc 'Git "/project/root"))
-    (stub buffer-file-name => "/project/root/buffer/filename.ext")
-    (should (equal (testrun--file-name) "buffer/filename.ext"))))
+(ert-deftest test-testrun-core--resolve-runner-command ()
+  "Should resolve any know symbols in the runner command.
+
+Currently there is only one known symbol which is `npx', and
+it should resolve either to the binary in the node modules bin dir
+or to the executable itself, ie:
+'(npx \"jest\") => \"node_modules/.bin/jest\" is it exists
+'(npx \"jest\") => \"jest\" if it doesn't."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git "/testrun/buffer")))
+            ((symbol-function 'file-executable-p)
+             (lambda (_f) t)))
+    (should (equal (testrun-core--resolve-runner-command '("jest"))
+                   '("jest")))
+    (should (equal (testrun-core--resolve-runner-command '(npx "jest"))
+                   '("/testrun/buffer/node_modules/.bin/jest")))
+    (should (equal (testrun-core--resolve-runner-command '(npx "jest" "args"))
+                   '("/testrun/buffer/node_modules/.bin/jest" "args")))
+    (should (equal (testrun-core--resolve-runner-command '("CI=TRUE" npx "jest" "args"))
+                   '("CI=TRUE" "/testrun/buffer/node_modules/.bin/jest" "args"))))
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git "/testrun/buffer")))
+            ((symbol-function 'file-executable-p)
+             (lambda (_f) nil)))
+    (should (equal (testrun-core--resolve-runner-command '("jest"))
+                   '("jest")))
+    (should (equal (testrun-core--resolve-runner-command '(npx "jest"))
+                   '("jest")))
+    (should (equal (testrun-core--resolve-runner-command '(npx "jest" "args"))
+                   '("jest" "args")))
+    (should (equal (testrun-core--resolve-runner-command '("CI=TRUE" npx "jest" "args"))
+                   '("CI=TRUE" "jest" "args")))))
 
 (provide 'testrun-core-test)
 ;;; testrun-core-test.el ends here

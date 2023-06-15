@@ -1,32 +1,3 @@
-;;; testrun-pytest-test.el --- Tests for testrun and pytest -*- lexical-binding: t -*-
-
-;; Copyright (C) 2023 Alessandro Martini <martini97@protonmail.ch>
-
-;; Author: Alessandro Martini
-
-;; This file is NOT part of GNU Emacs.
-
-;; This file is free software: you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by the
-;; Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This file is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
-
-;;; Commentary:
-
-;; Integration test between testrun and pytest.
-
-;;; Code:
-
-(require 'cl-macs)
-
 (ert-deftest test-testrun-pytest-get-test-nearest ()
   "Verify expected test paths with the nearest scope.
 
@@ -161,6 +132,3 @@ Should always return the empty."
        :position 72
        :body
        (testrun-nearest)))))
-
-(provide 'testrun-pytest-test)
-;;; testrun-pytest-test.el ends here

@@ -30,14 +30,19 @@
 
 ;;; Code:
 
-(require 'testrun)
+(require 'testrun-core)
 (require 'testrun-treesit)
+
+(defcustom testrun-pytest-separator "::"
+  "Separator for the pyests test path."
+  :type 'string
+  :group 'testrun)
 
 ;;;###autoload
 (defun testrun-pytest-get-test (scope)
   "Get the pytest test specifier string for the SCOPE."
   (string-join
-   (let ((filename (testrun--file-name)))
+   (let ((filename (testrun-core--file-name)))
      (pcase scope
        ("nearest" (append (list filename)
                           (mapcar #'testrun-treesit--get-node-name

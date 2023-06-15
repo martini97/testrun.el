@@ -5,7 +5,7 @@
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
 ;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "30.1") (project "0.9.8") (s "1.13.0"))
+;; Package-Requires: ((emacs "30.1"))
 ;; Keywords: tests convenience
 ;; Homepage: https://github.com/martini97/testrun.el
 
@@ -33,9 +33,10 @@
 
 (require 'cl-lib)
 (require 'subr-x)
-(require 's)
 (require 'project)
 (require 'treesit)
+
+(require 'testrun-core)
 
 (defgroup testrun nil
   "Test runner for Emacs."
@@ -75,11 +76,6 @@
   :type 'function
   :group 'testrun)
 
-(defcustom testrun-pytest-separator "::"
-  "Separator for the pyests test path."
-  :type 'string
-  :group 'testrun)
-
 (defvar testrun-runner-function-alist
   '((pytest . testrun-pytest-get-test)
     (jest . testrun-jest-get-test)
@@ -90,29 +86,6 @@
   (if-let ((test-fn (alist-get runner testrun-runner-function-alist)))
       (funcall test-fn type)
     (user-error "Unknown runner \"%s\"" runner)))
-
-(defun testrun--project-root ()
-  "Get project root to launch compilation."
-  (if-let ((project (project-current)))
-      (project-root project)
-    default-directory))
-
-(defun testrun--file-name ()
-  "Get buffer filename relative to the project root."
-  (file-relative-name (buffer-file-name) (testrun--project-root)))
-
-(defun testrun--resolve-command (runner)
-  "Resolve the command for RUNNER."
-  (let ((cmd runner))
-    (when-let* ((has-npx (memq 'npx runner))
-                (exe-name (car-safe (cdr-safe has-npx)))
-                (without-npx (remq 'npx runner))
-                ;; TODO: we can improve this `node-exe'
-                (node-exe (expand-file-name exe-name "node_modules/.bin"))
-                (cmd-full (cl-substitute node-exe exe-name without-npx)))
-      (setq cmd (if (file-executable-p (car-safe cmd-full)) cmd-full
-                  without-npx)))
-    cmd))
 
 (defun testrun--get-runner ()
   "Get runner for the current buffer."
@@ -128,13 +101,12 @@
 (defun testrun--get-runner-cmd (runner)
   "Get base command for RUNNER."
   (if-let* ((cmd (alist-get runner testrun-runners)))
-      (testrun--resolve-command cmd)
+      (testrun-core--resolve-runner-command cmd)
     (user-error "Could not find command for runner \"%s\"" runner)))
 
-(defun testrun--comint-p (runner)
-  "Check if RUNNER requires `comint-mode'."
+(defun testrun-core--comint-p (runner)
+  "Check if RUNNER requires `commint-mode'."
   (not (null (member runner testrun-comint-runners))))
-
 
 ;;;###autoload
 (defun testrun-run (type)
@@ -143,11 +115,11 @@
   (let* ((runner (testrun--get-runner))
          (runner-cmd (testrun--get-runner-cmd runner))
          (test (testrun--get-test type runner))
-         (with-comint (testrun--comint-p runner))
-         (root (testrun--project-root))
+         (with-comint (testrun-core--comint-p runner))
+         (root (testrun-core--root))
          (default-directory root)
          (compilation-buffer-name-function testrun-compilation-buffer-name-function)
-         (cmd (string-trim (s-join " " (append runner-cmd (list test))))))
+         (cmd (string-trim (string-join (append runner-cmd (list test)) " "))))
     (setq-local compile-command cmd)
     (compile cmd with-comint)))
 

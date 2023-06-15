@@ -23,28 +23,160 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'el-mock)
+(require 'cl-macs)
 
-(ert-deftest test-testrun-jest ()
-  "Test jest integration with testrun."
-  (testrun-treesit-test (:language javascript :mode js-ts-mode :content "javascriptJest.test.js" :position 775)
-    (with-mock
-      (stub buffer-file-name => (expand-file-name
-                                 "test/assets/javascriptJest.test.js"
-                                 default-directory))
-      (stub project-current => (list 'vc 'Git default-directory))
-      (mock (compile "jest test/assets/javascriptJest.test.js -t \'namespace nested namespace this is trickier \\(%#\\)\'" t))
-      (testrun-nearest)
-      (mock (compile "jest test/assets/javascriptJest.test.js -t \'namespace nested namespace\'" t))
-      (testrun-namespace)
-      (mock (compile "jest test/assets/javascriptJest.test.js" t))
-      (testrun-file)
-      (mock (compile "jest" t))
-      (testrun-all)
-      (goto-char 373)
-      (mock (compile "jest test/assets/javascriptJest.test.js -t \'namespace root level with only\'" t))
-      (testrun-nearest))))
+(ert-deftest test-testrun-jest-get-test-nearest ()
+  "Verify expected test paths with the \"nearest\" scope."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory))))
+      (test-testrun-treesit-setup
+        :mode js-ts-mode
+        :language javascript
+        :asset "javascriptJest.test.js"
+        :position 775
+        :body
+        (progn
+          (should
+           (equal
+            (testrun-jest-get-test "nearest")
+            "test/assets/javascriptJest.test.js -t 'namespace nested namespace this is trickier \\(%#\\)'"))
+          (goto-char 372)
+          (should
+           (equal
+            (testrun-jest-get-test "nearest")
+            "test/assets/javascriptJest.test.js -t 'namespace root level with only'"))
+          (goto-char 53)
+          (should
+           (equal
+            (testrun-jest-get-test "nearest")
+            "test/assets/javascriptJest.test.js -t 'root level test'"))))))
+
+(ert-deftest test-testrun-jest-get-test-namespace ()
+  "Verify expected test paths with the \"namespace\" scope."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory))))
+      (test-testrun-treesit-setup
+        :mode js-ts-mode
+        :language javascript
+        :asset "javascriptJest.test.js"
+        :position 775
+        :body
+        (progn
+          (should
+           (equal
+            (testrun-jest-get-test "namespace")
+            "test/assets/javascriptJest.test.js -t 'namespace nested namespace'"))
+          (goto-char 372)
+          (should
+           (equal
+            (testrun-jest-get-test "namespace")
+            "test/assets/javascriptJest.test.js -t 'namespace'"))
+          (goto-char 53)
+          (should
+           (equal
+            (testrun-jest-get-test "namespace")
+            "test/assets/javascriptJest.test.js"))))))
+
+(ert-deftest test-testrun-jest-get-test-file ()
+  "Verify expected test paths with the \"file\" scope."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory))))
+      (test-testrun-treesit-setup
+        :mode js-ts-mode
+        :language javascript
+        :asset "javascriptJest.test.js"
+        :position 775
+        :body
+        (progn
+          (should
+           (equal
+            (testrun-jest-get-test "file") "test/assets/javascriptJest.test.js"))
+          (goto-char 372)
+          (should
+           (equal
+            (testrun-jest-get-test "file") "test/assets/javascriptJest.test.js"))
+          (goto-char 53)
+          (should
+           (equal
+            (testrun-jest-get-test "file") "test/assets/javascriptJest.test.js"))))))
+
+(ert-deftest test-testrun-jest-get-test-all ()
+  "Verify expected test paths with the \"all\" scope."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory))))
+      (test-testrun-treesit-setup
+        :mode js-ts-mode
+        :language javascript
+        :asset "javascriptJest.test.js"
+        :position 775
+        :body
+        (progn
+          (should (equal (testrun-jest-get-test "all") ""))
+          (goto-char 372)
+          (should (equal (testrun-jest-get-test "all") ""))
+          (goto-char 53)
+          (should (equal (testrun-jest-get-test "all") ""))))))
+
+(ert-deftest test-testrun-jest-run ()
+  "Sort of an integration test for the compile command of jest."
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory)))
+            ((symbol-function 'file-executable-p)
+             (lambda (_f) nil))
+            ((symbol-function 'compile)
+             (lambda (cmd commint)
+               (should (equal cmd "jest test/assets/javascriptJest.test.js -t 'root level test'"))
+               (should commint))))
+    (test-testrun-treesit-setup
+     :mode js-ts-mode
+     :language javascript
+     :asset "javascriptJest.test.js"
+     :position 53
+     :body
+     (testrun-nearest)))
+
+  ;; running with local jest
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory)))
+            ((symbol-function 'file-executable-p)
+             (lambda (_f) t))
+            ((symbol-function 'compile)
+             (lambda (cmd commint)
+               (should
+                (equal
+                 cmd
+                 (concat
+                  (expand-file-name "node_modules/.bin/jest" default-directory)
+                  " test/assets/javascriptJest.test.js -t 'root level test'")))
+               (should commint))))
+    (test-testrun-treesit-setup
+     :mode js-ts-mode
+     :language javascript
+     :asset "javascriptJest.test.js"
+     :position 53
+     :body
+     (testrun-nearest)))
+
+  ;; running with local yarn test
+  (cl-letf (((symbol-function 'project-current)
+             (lambda () (list 'vc 'Git default-directory)))
+            ((symbol-function 'file-executable-p)
+             (lambda (_f) t))
+            ((symbol-function 'compile)
+             (lambda (cmd commint)
+               (should
+                (equal
+                 cmd "yarn test test/assets/javascriptJest.test.js -t 'root level test'"))
+               (should commint))))
+    (let ((testrun-runners '((jest . ("yarn" "test")))))
+      (test-testrun-treesit-setup
+       :mode js-ts-mode
+       :language javascript
+       :asset "javascriptJest.test.js"
+       :position 53
+       :body
+       (testrun-nearest))))
+  )
 
 (provide 'testrun-jest-test)
 ;;; testrun-jest-test.el ends here

@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(require 'testrun)
+(require 'testrun-core)
 
 (defun testrun-ert--get-test-name-at-point ()
   "Get the name of the current test at point.
@@ -51,7 +51,7 @@ https://github.com/tonini/overseer.el"
 (defun testrun-ert-get-test (scope)
   "Get the ERT test specifier string for the SCOPE."
   (string-join
-   (let ((filename (testrun--file-name)))
+   (let ((filename (testrun-core--file-name)))
      (pcase scope
        ("nearest" (list filename "-p" (testrun-ert--get-test-name-at-point)))
        ("namespace" (user-error "ERT does not support the \"%s\" scope" scope))

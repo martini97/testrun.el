@@ -31,7 +31,8 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'testrun)
+(require 'subr-x)
+(require 'testrun-core)
 (require 'testrun-treesit)
 
 (defun testrun-jest--node-test-p (node test-keywords)
@@ -69,7 +70,7 @@
 (defun testrun-jest-get-test (type)
   "Get jest test for TYPE."
   (string-join
-   (let ((filename (testrun--file-name)))
+   (let ((filename (testrun-core--file-name)))
      (pcase type
        ("nearest" (append (list filename)
                           (testrun-jest--get-test-by-keywords
