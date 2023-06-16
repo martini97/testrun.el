@@ -75,10 +75,54 @@
 
 (ert-deftest test-testrun--compile ()
   "Tests for `testrun--compile'."
-  ;; TODO: Test it saves remembers the command
-  ;; TODO: Test it sets the expected buffer name function (?)
-  ;; TODO: Test it calls the compile command properly
-  )
+  (let ((command "compile command")
+        (with-comint t)
+        (testrun-core--last-tests nil))
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd cmnt)
+                 (should (equal cmd command))
+                 (should (equal cmnt with-comint)))))
+      (testrun--compile command with-comint default-directory))
+    (should (equal (testrun-core--get-last default-directory)
+                   (list command with-comint)))))
+
+(ert-deftest test-testrun-run ()
+  "Tests for `testrun-run'."
+  (test-testrun-treesit-setup
+    :mode python-ts-mode
+    :language python
+    :position 205
+    :asset "test_python_pytest.py"
+    :body
+    (let ((testrun-comint-runners '(pytest))
+          (testrun-mode-alist '((python-ts-mode . pytest)))
+          (testrun-runners '((pytest . ("pytest")))))
+      (cl-letf (((symbol-function 'testrun--compile)
+                 (lambda (cmd with-comint root)
+                   (should (equal cmd "pytest test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace"))
+                   (should with-comint)
+                   (should (equal root default-directory)))))
+        (testrun-run "nearest")))))
+
+(ert-deftest test-testrun-last ()
+  "Tests for `testrun-last'."
+  (cl-letf (((symbol-function 'testrun-core--root)
+             (lambda () default-directory))
+            ((symbol-function 'testrun--compile)
+             (lambda (cmd cmnt root)
+               (user-error "Should not call compile"))))
+    (let ((testrun-core--last-tests nil))
+      (should-error (testrun-last) :type 'user-error)))
+
+  (cl-letf (((symbol-function 'testrun-core--root)
+             (lambda () default-directory))
+            ((symbol-function 'testrun--compile)
+             (lambda (cmd cmnt root)
+               (should (equal cmd "last command"))
+               (should cmnt)
+               (should (equal root default-directory)))))
+    (let ((testrun-core--last-tests `((,default-directory . ("last command" t)))))
+      (testrun-last))))
 
 (provide 'testrun-test)
 ;;; testrun-test.el ends here

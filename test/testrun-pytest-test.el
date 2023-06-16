@@ -34,23 +34,21 @@ The nearest scope should return the full path to the current test function.
 If it's outside of a function, but inside a test class, then it should return
 the path to the test class.
 If it's outside of a class it should return the path to the file."
-  (cl-letf (((symbol-function 'project-current)
-             (lambda () (list 'vc 'Git default-directory))))
-      (test-testrun-treesit-setup
-        :mode python-ts-mode
-        :language python
-        :asset "test_python_pytest.py"
-        :position 72
-        :body
-        (progn
-          (should (equal (testrun-pytest-get-test "nearest")
-                         "test/assets/test_python_pytest.py::test_root_level"))
-          (goto-char 126)
-          (should (equal (testrun-pytest-get-test "nearest")
-                         "test/assets/test_python_pytest.py::TestWithNamespace"))
-          (goto-char 205)
-          (should (equal (testrun-pytest-get-test "nearest")
-                         "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace"))))))
+  (test-testrun-treesit-setup
+    :mode python-ts-mode
+    :language python
+    :asset "test_python_pytest.py"
+    :position 72
+    :body
+    (progn
+      (should (equal (testrun-pytest-get-test "nearest")
+                     "test/assets/test_python_pytest.py::test_root_level"))
+      (goto-char 126)
+      (should (equal (testrun-pytest-get-test "nearest")
+                     "test/assets/test_python_pytest.py::TestWithNamespace"))
+      (goto-char 205)
+      (should (equal (testrun-pytest-get-test "nearest")
+                     "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace")))))
 
 (ert-deftest test-testrun-pytest-get-test-namespace ()
   "Verify expected test paths with the namespace scope.

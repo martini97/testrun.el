@@ -79,8 +79,11 @@ like the `npx' symbol which is translated into the node_modules/.bin."
   "Remember compilation command for later use.
 
 Store ROOT, CMD and WITH-COMINT in `testrun-core--last-tests'
-so we can retrieve them later."
-  (assoc-delete-all root testrun-core--last-tests)
+so we can retrieve them later. We only store the last command,
+overriding it every time, maybe we could setup some sort of
+history later."
+  (setq testrun-core--last-tests
+        (delq (assoc root testrun-core--last-tests) testrun-core--last-tests))
   (push `(,root . (,cmd ,with-comint)) testrun-core--last-tests))
 
 (defun testrun-core--get-last (root)

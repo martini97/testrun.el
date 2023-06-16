@@ -44,16 +44,18 @@
 :body is the test to run in the buffer context, since I suck at
 elisp it only supports a `progn'."
   (declare (indent defun) (debug (sexp body)))
-  `(with-temp-buffer
-     (funcall #',(plist-get args :mode))
-     (treesit-parser-create ',(plist-get args :language))
-     (switch-to-buffer (current-buffer))
-     (erase-buffer)
-     (goto-char (point-min))
-     (insert-file-contents (expand-file-name ,(plist-get args :asset) "test/assets/"))
-     (goto-char ,(plist-get args :position))
-     (let ((buffer-file-name (expand-file-name ,(plist-get args :asset) "test/assets/")))
-       ,(plist-get args :body))))
+  `(cl-letf (((symbol-function 'project-current)
+              (lambda () (list 'vc 'Git default-directory))))
+     (with-temp-buffer
+       (funcall #',(plist-get args :mode))
+       (treesit-parser-create ',(plist-get args :language))
+       (switch-to-buffer (current-buffer))
+       (erase-buffer)
+       (goto-char (point-min))
+       (insert-file-contents (expand-file-name ,(plist-get args :asset) "test/assets/"))
+       (goto-char ,(plist-get args :position))
+       (let ((buffer-file-name (expand-file-name ,(plist-get args :asset) "test/assets/")))
+         ,(plist-get args :body)))))
 
 (cl-defmacro test-testrun-setup (&rest args)
   "Setup test buffer with ARGS.

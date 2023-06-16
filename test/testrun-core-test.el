@@ -104,5 +104,39 @@ or to the executable itself, ie:
     (should (equal (testrun-core--resolve-runner-command '("CI=TRUE" npx "jest" "args"))
                    '("CI=TRUE" "jest" "args")))))
 
+(ert-deftest test-testrun-core--remember ()
+  "Test for `testrun-core--remember'."
+  (let ((testrun-core--last-tests nil)
+        (last-command "last command")
+        (last-comint t))
+    ;; should store last command
+    (testrun-core--remember default-directory last-command last-comint)
+    (should (equal testrun-core--last-tests
+                   `((,default-directory . (,last-command ,last-comint)))))
+
+    ;; should override commmand for same root
+    (testrun-core--remember default-directory "new command" nil)
+    (should (equal testrun-core--last-tests
+                   `((,default-directory . ("new command" nil)))))
+
+    ;; should not override command for different root
+    (testrun-core--remember "/new/root" "command new root" t)
+    (should (equal testrun-core--last-tests
+                   `(("/new/root" . ("command new root" t))
+                     (,default-directory . ("new command" nil)))))))
+
+(ert-deftest test-testrun-core--get-last ()
+  "Test for `testrun-core--get-last'."
+  (let ((testrun-core--last-tests nil))
+    (should-not (testrun-core--get-last default-directory)))
+  (let ((testrun-core--last-tests `((,default-directory . ("command" t)))))
+    (should (equal (testrun-core--get-last default-directory)
+                   '("command" t))))
+  (let ((testrun-core--last-tests `((,default-directory . ("command" t))
+                                    ("/new/root" . ("root" nil)))))
+    (should (equal (testrun-core--get-last "/new/root")
+                   '("root" nil)))
+    (should-not (testrun-core--get-last "/not/remember"))))
+
 (provide 'testrun-core-test)
 ;;; testrun-core-test.el ends here
