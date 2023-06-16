@@ -7,7 +7,7 @@ for_compile := *.el
 for_checkdoc := *.el
 for_checkindent := *.el
 
-.PHONY: test clean-elc compile lint help
+.PHONY: test clean-elc compile lint help install tree-sitter
 
 test: clean-elc ## Run tests with ERT
 	@$(CASK) exec ert-runner
@@ -15,7 +15,7 @@ test: clean-elc ## Run tests with ERT
 clean-elc: ## Delete cached files
 	@find . -name '*.elc' -delete
 	@find . -name '*~' -delete
-	@find . -name '*.el-autoloads.el' -delete
+	@find . -name '*-autoloads.el' -delete
 
 compile: clean-elc ## Check for byte-compiler errors
 	@for file in $(for_compile); do \
@@ -29,6 +29,9 @@ lint: clean-elc ## Run linter
 
 install: ## Install Cask packages
 	@$(CASK) install
+
+tree-sitter: ## Install tree-sitter grammars
+	@$(CASK) emacs -Q --batch -l scripts/testrun-treesit.el
 
 help: ## Show this message
 	@echo "usage:" >&2

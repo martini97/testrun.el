@@ -77,6 +77,10 @@ elisp it only supports a `progn'."
        (let ((buffer-file-name (expand-file-name ,(plist-get args :asset) "test/assets/")))
          ,(plist-get args :body)))))
 
+;; NOTE: this fixes the tree-sitter grammar installation on circleci
+(when-let ((treesit-dir (expand-file-name ".cask/tree-sitter")))
+  (push treesit-dir treesit-extra-load-path))
+
 (provide 'test-prelude)
 ;;; test-prelude.el ends here
 

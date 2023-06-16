@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    paths-ignore:
+    - '**.md'
+
+jobs:
+  tests:
+    name: ${{ matrix.emacs.name }}
+    runs-on: ubuntu-latest
+    container:
+      image: martini97/emacs:${{ matrix.emacs.version }}
+      options: --user root
+    strategy:
+      fail-fast: true
+      matrix:
+        emacs:
+          - name: Emacs 29
+            version: 29
+          - name: Emacs 30
+            version: 30
+    steps:
+
+    - uses: actions/checkout@v3
+
+    - name: run install dependencies
+      run: make install
+
+    - name: install tree-sitter grammars
+      run: make tree-sitter
+
+    - name: run ci
+      run: make compile lint test
