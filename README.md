@@ -1,5 +1,7 @@
 # testrun.el
 
+[![ci](https://github.com/martini97/testrun.el/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/martini97/testrun.el/actions/workflows/test.yml)
+
 generic test runner for Emacs, heavily inspired by [vim-test](https://github.com/vim-test/vim-test).
 
 ## supported runners
@@ -18,11 +20,15 @@ this package is not on any of the Emacs archives, but it can be installed with e
   :preface
   ;; this will allow you to override the runners on your .dir-locals.el
   (put 'testrun-runners 'safe-local-variable #'listp)
-  :general
-  (my-leader-def :infix "t"
-    "t" 'testrun-nearest
-    "c" 'testrun-namespace
-    "f" 'testrun-file
-    "a" 'testrun-all))
+
+  (global-set-key
+   (kbd "C-c t")
+   (define-keymap
+     :prefix 'my/tests-key-map
+     "t" 'testrun-nearest
+     "c" 'testrun-namespace
+     "f" 'testrun-file
+     "a" 'testrun-all
+     "l" 'testrun-last)))
 
 ```
