@@ -45,7 +45,11 @@
 (defcustom testrun-runners '((pytest . ("pytest"))
                              (jest . (npx "jest"))
                              (ert . ("cask" "exec" "ert-runner")))
-  "Alist of test runner commands."
+  "Alist of test runner commands.
+
+Each key identifies a test runner, and the value should be the test runner
+command. For javascript you can use the `npx' symbol to use the binary from
+the local node_modules if it's available."
   :type '(alist :key-type (symbol :tag "Runner")
                 :value-type
                 (choice (repeat (choice (string :tag "Argument")
@@ -60,7 +64,7 @@
                                 (typescript-ts-mode . jest)
                                 (tsx-ts-mode . jest)
                                 (emacs-lisp-mode . ert))
-  "Alist mapping major mode names to runners to use in thos modes."
+  "Alist mapping major mode names to test runners to use in those modes."
   :type '(alist :key-type (choice (symbol :tag "Major mode")
                                   (string :tag "Buffer name regexp"))
                 :value-type (symbol :tag "Formatter"))
@@ -85,7 +89,9 @@
   "Get test path for TYPE and RUNNER."
   (if-let ((test-fn (alist-get runner testrun-runner-function-alist)))
       (funcall test-fn type)
-    (user-error "Unknown runner \"%s\"" runner)))
+    (user-error
+     "Unknown test runner \"%s\", check `testrun-runners' for available runners"
+     runner)))
 
 (defun testrun--get-runner ()
   "Get runner for the current buffer."
@@ -102,7 +108,9 @@
   "Get base command for RUNNER."
   (if-let* ((cmd (alist-get runner testrun-runners)))
       (testrun-core--resolve-runner-command cmd)
-    (user-error "Could not find command for runner \"%s\"" runner)))
+    (user-error
+     "Could not find command for runner \"%s\", check `testrun-runners' for available commands"
+     runner)))
 
 (defun testrun--comint-p (runner)
   "Check if RUNNER requires `commint-mode'."
