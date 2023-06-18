@@ -2,7 +2,21 @@
 
 [![ci](https://github.com/martini97/testrun.el/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/martini97/testrun.el/actions/workflows/test.yml)
 
-generic test runner for Emacs, heavily inspired by [vim-test](https://github.com/vim-test/vim-test). provides:
+An Emacs wrapper for running tests on different granularities, inspired by [vim-test](https://github.com/vim-test/vim-test).
+
+This package uses treesitter for finding the path to the current test and/or namespace, so you will need Emacs 29+ with treesitter support, [masteringemacs has a great post on setting up treesitter](https://www.masteringemacs.org/article/how-to-get-started-tree-sitter).
+
+## Supported testrunners
+
+Testrun.el allows you to run tests using Emacs `compile` feature, hanlding each test runner abstraction. Currently the following test runners are supported:
+
+| Language           | Test Runner             | Identifier |
+| ------------------ | ----------------------- | ---------- |
+| Python             | Pytest                  | `pytest`   |
+| Javascript (js,ts) | Jest, React Testscripts | `jest`     |
+| Emacs Lisp         | ERT                     | `ert`      |
+
+## Available commands
 
 - `testrun-nearest`: run the nearest test at point if there's one
 
@@ -14,18 +28,9 @@ generic test runner for Emacs, heavily inspired by [vim-test](https://github.com
 
 - `testrun-last`: run the last known test
 
-this package use treesitter for figuring out the test and namespace at point, so you will need at least emacs
-29 with treesitter builtin. [masteringemacs has a great post on setting up treesitter](https://www.masteringemacs.org/article/how-to-get-started-tree-sitter).
+## Installation
 
-## supported runners
-
-- [x] pytest (nearest, namespace, file, all)
-- [x] jest (nearest, namespace, file, all)
-- [x] ert-runner (nearest, file, all)
-
-## installation
-
-this package is not on any of the Emacs archives, but it can be installed with elpaca with:
+This package is not on any of the Emacs archives, but it can be installed with elpaca with:
 
 ``` elisp
 (use-package testrun
