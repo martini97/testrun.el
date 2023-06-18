@@ -44,7 +44,12 @@
       (should (equal (testrun--get-runner) 'pytest)))
 
     (let ((buffer-file-name "/project/regex_test.py"))
-      (should (equal (testrun--get-runner) 'regex)))))
+      (should (equal (testrun--get-runner) 'regex)))
+
+    (let ((buffer-file-name "unknown")
+          (major-mode 'unknown-mode))
+      (should-error (testrun--get-runner)
+                    :type 'user-error))))
 
 (ert-deftest test-testrun--get-runner-cmd ()
   "Tests for `testrun--get-runner-cmd'."
