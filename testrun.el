@@ -95,14 +95,20 @@ the local node_modules if it's available."
 
 (defun testrun--get-runner ()
   "Get runner for the current buffer."
-  (cl-dolist (runner testrun-mode-alist)
-    (when (or (and (symbolp (car runner))
-                   (derived-mode-p (car runner)))
-              (and (stringp (car runner))
-                   buffer-file-name
-                   (string-match-p
-                    (car runner) buffer-file-name)))
-      (cl-return (cdr runner)))))
+  (let ((found nil))
+    (cl-dolist (runner testrun-mode-alist)
+      (when (or (and (symbolp (car runner))
+                     (derived-mode-p (car runner)))
+                (and (stringp (car runner))
+                     buffer-file-name
+                     (string-match-p
+                      (car runner) buffer-file-name)))
+        (setq found (cdr runner))
+        (cl-return)))
+    (when (null found)
+        (user-error
+         "No test runner found for the current buffer, check `testrun-mode-alist'"))
+    found))
 
 (defun testrun--get-runner-cmd (runner)
   "Get base command for RUNNER."
