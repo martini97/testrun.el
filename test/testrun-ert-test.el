@@ -27,6 +27,11 @@
 
 (require 'cl-macs)
 
+(ert-deftest test-testrun--ert-get-test-regex ()
+  "Tests for `testrun-ert--get-test-regex'."
+  (should (equal (testrun-ert--get-test-regex "foo-bar")
+                 "'^foo-bar$'")))
+
 (ert-deftest test-testrun-ert-get-test ()
   "Verify the `testrun-ert-get-test' function.
 
@@ -41,7 +46,7 @@ regex shenanigans, all tests are done here."
       (let* ((filename (expand-file-name "ert-test-exaple.el" "test/assets/"))
              (test-filename (file-relative-name filename default-directory)))
         (should (equal (testrun-ert-get-test "nearest")
-                       (concat test-filename " -p test-testrun-pytest-get-test-nearest")))
+                       (concat test-filename " -p '^test-testrun-pytest-get-test-nearest$'")))
         (should-error (testrun-ert-get-test "namespace") :type 'user-error)
         (should (equal (testrun-ert-get-test "file") test-filename))
         (should (equal (testrun-ert-get-test "all") ""))))))
@@ -60,7 +65,12 @@ regex shenanigans, all tests are done here."
         (cl-letf
             (((symbol-function 'compile)
               (lambda (cmd commint)
-                (should (equal cmd (concat ert-cmd " " test-filename " -p " test-name)))
+                (should
+                 (equal
+                  cmd
+                  (concat
+                   ert-cmd " " test-filename " -p "
+                   (testrun-ert--get-test-regex test-name))))
                 (should-not commint))))
           (testrun-nearest))))))
 
