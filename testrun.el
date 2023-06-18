@@ -106,8 +106,8 @@ the local node_modules if it's available."
         (setq found (cdr runner))
         (cl-return)))
     (when (null found)
-        (user-error
-         "No test runner found for the current buffer, check `testrun-mode-alist'"))
+      (user-error
+       "No test runner found for the current buffer, check `testrun-mode-alist'"))
     found))
 
 (defun testrun--get-runner-cmd (runner)
