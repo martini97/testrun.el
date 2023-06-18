@@ -31,7 +31,7 @@ install: ## Install Cask packages
 	@$(CASK) install
 
 tree-sitter: ## Install tree-sitter grammars
-	@$(CASK) emacs -Q --batch -l scripts/testrun-treesit.el
+	@$(CASK) emacs --script scripts/testrun-treesit.el
 
 help: ## Show this message
 	@echo "usage:" >&2

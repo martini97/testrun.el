@@ -34,7 +34,7 @@
 (require 'treesit-auto)
 
 (setq treesit-auto-install t
-      treesit-auto-opt-out-list '(protobuf))
+      treesit-auto-langs '(python javascript typescript tsx))
 (treesit-auto-install-all)
 
 (provide 'testrun-treesit)
