@@ -4,7 +4,7 @@
 
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
 ;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "29"))
 ;; Keywords: tests convenience
 ;; Homepage: https://github.com/martini97/testrun.el
@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'rx)
+(require 'seq)
 (require 'testrun-core)
 (require 'testrun-treesit)
 
@@ -38,6 +40,21 @@
   :type 'string
   :group 'testrun)
 
+(defvar testrun-pytest-namespace-node-types '("class_definition")
+  "List of node types relevant for the \"namespace\" scope.")
+
+(defvar testrun-pytest-nearest-node-types '("class_definition"
+                                            "function_definition")
+  "List of node types relevant for the \"nearest\" scope.")
+
+(defvar testrun-pytest-node-regex (rx bol (or "test" "Test") (1+ (or word "_")) eol))
+
+(defun testrun-pytest--get-nodes (node-types)
+  "Return name of nodes with NODE-TYPES."
+  (seq-filter (lambda (n) (string-match-p testrun-pytest-node-regex n))
+              (mapcar #'testrun-treesit--get-node-name
+                      (testrun-treesit--get-nodes-by-type node-types))))
+
 ;;;###autoload
 (defun testrun-pytest-get-test (scope)
   "Get the pytest test specifier string for the SCOPE."
@@ -45,13 +62,9 @@
    (let ((filename (testrun-core--file-name)))
      (pcase scope
        ("nearest" (append (list filename)
-                          (mapcar #'testrun-treesit--get-node-name
-                                  (testrun-treesit--get-nodes-by-type
-                                   "class_definition" "function_definition"))))
+                          (testrun-pytest--get-nodes testrun-pytest-nearest-node-types)))
        ("namespace" (append (list filename)
-                            (mapcar #'testrun-treesit--get-node-name
-                                    (testrun-treesit--get-nodes-by-type
-                                     "class_definition"))))
+                            (testrun-pytest--get-nodes testrun-pytest-namespace-node-types)))
        ("file" (list filename))
        ("all" nil)))
    testrun-pytest-separator))

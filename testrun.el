@@ -4,7 +4,7 @@
 
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
 ;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "29") (project "0.9.8"))
 ;; Keywords: tests convenience
 ;; Homepage: https://github.com/martini97/testrun.el
@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'subr-x)
 (require 'project)
 (require 'treesit)
@@ -45,7 +46,11 @@
 (defcustom testrun-runners '((pytest . ("pytest"))
                              (jest . (npx "jest"))
                              (ert . ("cask" "exec" "ert-runner")))
-  "Alist of test runner commands."
+  "Alist of test runner commands.
+
+Each key identifies a test runner, and the value should be the test runner
+command. For javascript you can use the `npx' symbol to use the binary from
+the local node_modules if it's available."
   :type '(alist :key-type (symbol :tag "Runner")
                 :value-type
                 (choice (repeat (choice (string :tag "Argument")
@@ -60,7 +65,7 @@
                                 (typescript-ts-mode . jest)
                                 (tsx-ts-mode . jest)
                                 (emacs-lisp-mode . ert))
-  "Alist mapping major mode names to runners to use in thos modes."
+  "Alist mapping major mode names to test runners to use in those modes."
   :type '(alist :key-type (choice (symbol :tag "Major mode")
                                   (string :tag "Buffer name regexp"))
                 :value-type (symbol :tag "Formatter"))
@@ -85,24 +90,28 @@
   "Get test path for TYPE and RUNNER."
   (if-let ((test-fn (alist-get runner testrun-runner-function-alist)))
       (funcall test-fn type)
-    (user-error "Unknown runner \"%s\"" runner)))
+    (user-error
+     "Unknown test runner \"%s\", check `testrun-runners' for available runners"
+     runner)))
 
 (defun testrun--get-runner ()
   "Get runner for the current buffer."
-  (cl-dolist (runner testrun-mode-alist)
-    (when (or (and (symbolp (car runner))
-                   (derived-mode-p (car runner)))
-              (and (stringp (car runner))
-                   buffer-file-name
-                   (string-match-p
-                    (car runner) buffer-file-name)))
-      (cl-return (cdr runner)))))
+  (if-let* ((match-runner-p
+             (lambda (runner)
+               (or (and (symbolp (car runner)) (derived-mode-p (car runner)))
+                   (and (stringp (car runner)) (string-match-p (car runner) buffer-file-name)))))
+            (runner (seq-find match-runner-p testrun-mode-alist)))
+      (cdr runner)
+    (user-error
+     "No test runner found for the current buffer, check `testrun-mode-alist'")))
 
 (defun testrun--get-runner-cmd (runner)
   "Get base command for RUNNER."
   (if-let* ((cmd (alist-get runner testrun-runners)))
       (testrun-core--resolve-runner-command cmd)
-    (user-error "Could not find command for runner \"%s\"" runner)))
+    (user-error
+     "Could not find command for runner \"%s\", check `testrun-runners' for available commands"
+     runner)))
 
 (defun testrun--comint-p (runner)
   "Check if RUNNER requires `commint-mode'."
