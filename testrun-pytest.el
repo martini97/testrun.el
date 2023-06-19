@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'rx)
+(require 'seq)
 (require 'testrun-core)
 (require 'testrun-treesit)
 
@@ -45,10 +47,13 @@
                                             "function_definition")
   "List of node types relevant for the \"nearest\" scope.")
 
+(defvar testrun-pytest-node-regex (rx bol (or "test" "Test") (1+ (or word "_")) eol))
+
 (defun testrun-pytest--get-nodes (node-types)
   "Return name of nodes with NODE-TYPES."
-  (mapcar #'testrun-treesit--get-node-name
-          (testrun-treesit--get-nodes-by-type node-types)))
+  (seq-filter (lambda (n) (string-match-p testrun-pytest-node-regex n))
+              (mapcar #'testrun-treesit--get-node-name
+                      (testrun-treesit--get-nodes-by-type node-types))))
 
 ;;;###autoload
 (defun testrun-pytest-get-test (scope)

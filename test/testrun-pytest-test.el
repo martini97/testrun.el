@@ -48,7 +48,13 @@ If it's outside of a class it should return the path to the file."
                      "test/assets/test_python_pytest.py::TestWithNamespace"))
       (goto-char 205)
       (should (equal (testrun-pytest-get-test "nearest")
-                     "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace")))))
+                     "test/assets/test_python_pytest.py::TestWithNamespace::test_inside_namespace"))
+      (goto-char 305)
+      (should (equal (testrun-pytest-get-test "nearest")
+                     "test/assets/test_python_pytest.py::TestWithNamespace::test_nested_function"))
+      (goto-char 407)
+      (should (equal (testrun-pytest-get-test "nearest")
+                     "test/assets/test_python_pytest.py::TestWithNamespace::test_decorated")))))
 
 (ert-deftest test-testrun-pytest-get-test-namespace ()
   "Verify expected test paths with the namespace scope.
