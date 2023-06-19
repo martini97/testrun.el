@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'subr-x)
 (require 'project)
 (require 'treesit)
@@ -95,20 +96,14 @@ the local node_modules if it's available."
 
 (defun testrun--get-runner ()
   "Get runner for the current buffer."
-  (let ((found nil))
-    (cl-dolist (runner testrun-mode-alist)
-      (when (or (and (symbolp (car runner))
-                     (derived-mode-p (car runner)))
-                (and (stringp (car runner))
-                     buffer-file-name
-                     (string-match-p
-                      (car runner) buffer-file-name)))
-        (setq found (cdr runner))
-        (cl-return)))
-    (when (null found)
-      (user-error
-       "No test runner found for the current buffer, check `testrun-mode-alist'"))
-    found))
+  (if-let* ((match-runner-p
+             (lambda (runner)
+               (or (and (symbolp (car runner)) (derived-mode-p (car runner)))
+                   (and (stringp (car runner)) (string-match-p (car runner) buffer-file-name)))))
+            (runner (seq-find match-runner-p testrun-mode-alist)))
+      (cdr runner)
+    (user-error
+     "No test runner found for the current buffer, check `testrun-mode-alist'")))
 
 (defun testrun--get-runner-cmd (runner)
   "Get base command for RUNNER."

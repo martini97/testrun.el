@@ -38,6 +38,18 @@
   :type 'string
   :group 'testrun)
 
+(defvar testrun-pytest-namespace-node-types '("class_definition")
+  "List of node types relevant for the \"namespace\" scope.")
+
+(defvar testrun-pytest-nearest-node-types '("class_definition"
+                                            "function_definition")
+  "List of node types relevant for the \"nearest\" scope.")
+
+(defun testrun-pytest--get-nodes (node-types)
+  "Return name of nodes with NODE-TYPES."
+  (mapcar #'testrun-treesit--get-node-name
+          (testrun-treesit--get-nodes-by-type node-types)))
+
 ;;;###autoload
 (defun testrun-pytest-get-test (scope)
   "Get the pytest test specifier string for the SCOPE."
@@ -45,13 +57,9 @@
    (let ((filename (testrun-core--file-name)))
      (pcase scope
        ("nearest" (append (list filename)
-                          (mapcar #'testrun-treesit--get-node-name
-                                  (testrun-treesit--get-nodes-by-type
-                                   "class_definition" "function_definition"))))
+                          (testrun-pytest--get-nodes testrun-pytest-nearest-node-types)))
        ("namespace" (append (list filename)
-                            (mapcar #'testrun-treesit--get-node-name
-                                    (testrun-treesit--get-nodes-by-type
-                                     "class_definition"))))
+                            (testrun-pytest--get-nodes testrun-pytest-namespace-node-types)))
        ("file" (list filename))
        ("all" nil)))
    testrun-pytest-separator))

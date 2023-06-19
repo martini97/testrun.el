@@ -25,6 +25,57 @@
 
 (require 'cl-macs)
 
+(ert-deftest test-testrun-treesit--node-parents ()
+  "Test `testrun-treesit--node-parents'."
+  (test-testrun-treesit-setup
+   :mode python-ts-mode
+   :language python
+   :asset "test_python_pytest.py"
+   :position 204
+   :body
+   (let* ((node (treesit-node-at (point)))
+          (parents (testrun-treesit--node-parents node)))
+     (should (length= parents 8))
+     (should (equal parents (list
+                             (treesit-node-on 1 237)
+                             (treesit-node-on 102 236)
+                             (treesit-node-parent (treesit-node-on 132 236))
+                             (treesit-node-on 132 236)
+                             (treesit-node-on 173 236)
+                             (treesit-node-on 173 216)
+                             (treesit-node-parent (treesit-node-on 204 216))
+                             (treesit-node-on 204 216)))))))
+
+(ert-deftest test-testrun-treesit--filter-nodes-by-type ()
+  "Test `testrun-treesit--filter-nodes-by-type'."
+  (test-testrun-treesit-setup
+   :mode python-ts-mode
+   :language python
+   :asset "test_python_pytest.py"
+   :position 0
+   :body
+   (let ((nodes (list (treesit-node-on 204 216)
+                     (treesit-node-parent (treesit-node-on 204 216))
+                     (treesit-node-on 173 216)
+                     (treesit-node-on 173 236)
+                     (treesit-node-on 132 236)
+                     (treesit-node-parent (treesit-node-on 132 236))
+                     (treesit-node-on 102 236)
+                     (treesit-node-on 1 237))))
+    (should (length=
+             (testrun-treesit--filter-nodes-by-type nodes '("class_definition"
+                                                            "function_definition"
+                                                            "assert_statement"))
+             3))
+
+    (should (equal (testrun-treesit--filter-nodes-by-type nodes
+                                                          '("class_definition"
+                                                            "function_definition"
+                                                            "assert_statement"))
+                   (list (treesit-node-on 204 216)
+                         (treesit-node-on 132 236)
+                         (treesit-node-on 102 236)))))))
+
 (ert-deftest test-testrun-treesit--get-nodes-by-type ()
   "Test for `testrun-treesit--get-nodes-by-type'."
   (test-testrun-treesit-setup
@@ -34,11 +85,12 @@
    :position 72
    :body
    (progn
-     (let ((nodes (testrun-treesit--get-nodes-by-type "function_definition")))
+     (let ((nodes (testrun-treesit--get-nodes-by-type '("function_definition"))))
        (should (length= nodes 1))
        (should (equal (treesit-node-type (car nodes)) "function_definition")))
      (goto-char 204)
-     (let ((nodes (testrun-treesit--get-nodes-by-type "function_definition" "class_definition")))
+     (let ((nodes (testrun-treesit--get-nodes-by-type '("function_definition"
+                                                        "class_definition"))))
        (should (length= nodes 2))
        (should (equal (treesit-node-type (nth 0 nodes)) "class_definition"))
        (should (equal (treesit-node-type (nth 1 nodes)) "function_definition")))))
@@ -50,7 +102,7 @@
    :position 778
    :body
    (progn
-     (let ((nodes (testrun-treesit--get-nodes-by-type "call_expression")))
+     (let ((nodes (testrun-treesit--get-nodes-by-type '("call_expression"))))
        (should (length= nodes 4))))))
 
 (ert-deftest test-testrun-treesit--get-node-name ()
@@ -68,6 +120,22 @@
                     "TestWithNamespace"))
      (should (equal (testrun-treesit--get-node-name (treesit-node-on 17 99))
                     "test_root_level")))))
+
+(ert-deftest test-testrun-treesit--get-fn-name ()
+  "Tests for `testrun-treesit--get-fn-name'."
+  (test-testrun-treesit-setup
+   :mode js-ts-mode
+   :language javascript
+   :asset "javascriptJest.test.js"
+   :position 0
+   :body
+   (progn
+     (should (equal (testrun-treesit--get-fn-name (treesit-node-on 60 125))
+                    "it.only"))
+     (should (equal (testrun-treesit--get-fn-name (treesit-node-on 241 306))
+                    "test"))
+     (should (equal (testrun-treesit--get-fn-name (treesit-node-on 207 806))
+                    "describe")))))
 
 (provide 'testrun-treesit-test)
 ;;; testrun-treesit-test.el ends here

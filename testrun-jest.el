@@ -37,8 +37,7 @@
 
 (defun testrun-jest--node-test-p (node test-keywords)
   "Verify if NODE is one of Jest's TEST-KEYWORDS."
-  (let* ((child (treesit-node-child node 0))
-         (text (treesit-node-text child t))
+  (let* ((text (testrun-treesit--get-fn-name node))
          (keyword (car-safe (split-string text "\\."))))
     (not (null (member keyword test-keywords)))))
 
@@ -59,7 +58,7 @@
 
 (defun testrun-jest--get-test-by-keywords (&rest keywords)
   "Generate the Jest selector arguments filtering by KEYWORDS."
-  (when-let* ((nodes (testrun-treesit--get-nodes-by-type "call_expression"))
+  (when-let* ((nodes (testrun-treesit--get-nodes-by-type '("call_expression")))
               (keywords (seq-filter
                          #'(lambda (n) (testrun-jest--node-test-p n keywords))
                          nodes))
