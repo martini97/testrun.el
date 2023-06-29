@@ -26,6 +26,8 @@
 ;;; Code:
 
 (require 'cl-macs)
+(require 'testrun)
+(require 'testrun-ert)
 
 (ert-deftest test-testrun-ert-get-test ()
   "Verify the `testrun-ert-get-test' function.

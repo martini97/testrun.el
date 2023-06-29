@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'cl-macs)
+(require 'testrun-treesit)
 
 (ert-deftest test-testrun-treesit--node-parents ()
   "Test `testrun-treesit--node-parents'."

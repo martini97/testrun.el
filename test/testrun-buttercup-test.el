@@ -23,6 +23,9 @@
 
 ;;; Code:
 
+(require 'testrun)
+(require 'testrun-buttercup)
+
 (ert-deftest test-testrun-buttercup--get-test-pattern ()
   "Tests for `testrun-buttercup--get-test-pattern'."
   (test-testrun-setup
@@ -63,8 +66,7 @@
 
 (ert-deftest test-testrun-buttercup-run-emacs ()
   "Sort of an integration test for the compile command of buttercup."
-  (let ((testrun-runners `((buttercup-emacs . ,(alist-get 'buttercup-emacs testrun-runners))))
-        (testrun-mode-alist '((emacs-lisp-mode . buttercup-emacs))))
+  (let ((testrun-mode-alist '((emacs-lisp-mode . buttercup-emacs))))
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "emacs --batch --funcall buttercup-run-discover "
@@ -111,8 +113,7 @@
 
 (ert-deftest test-testrun-buttercup-run-cask ()
   "Sort of an integration test for the compile command of buttercup."
-  (let ((testrun-runners `((buttercup-cask . ,(alist-get 'buttercup-cask testrun-runners))))
-        (testrun-mode-alist '((emacs-lisp-mode . buttercup-cask))))
+  (let ((testrun-mode-alist '((emacs-lisp-mode . buttercup-cask))))
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "cask exec buttercup --pattern '^blackjack--deal-"
@@ -159,8 +160,7 @@
 
 (ert-deftest test-testrun-buttercup-run-eldev ()
   "Sort of an integration test for the compile command of buttercup."
-  (let ((testrun-runners `((buttercup-eldev . ,(alist-get 'buttercup-eldev testrun-runners))))
-        (testrun-mode-alist '((emacs-lisp-mode . buttercup-eldev))))
+  (let ((testrun-mode-alist '((emacs-lisp-mode . buttercup-eldev))))
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "eldev test -- --pattern '^blackjack--deal-"
