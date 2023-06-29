@@ -168,5 +168,149 @@
                              "\"")))
       (should-not (testrun-buttercup-get-test "all")))))
 
+(ert-deftest test-testrun-buttercup-run-emacs ()
+  "Sort of an integration test for the compile command of buttercup."
+  (let ((testrun-runners `((buttercup-emacs . ,(alist-get 'buttercup-emacs testrun-runners))))
+        (testrun-mode-alist '((emacs-lisp-mode . buttercup-emacs))))
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "emacs --batch --funcall buttercup-run-discover "
+                                            "--pattern=\"^blackjack--deal-new-hand with a "
+                                            "deck of jacks player has 20, shows hand actions$\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-nearest)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "emacs --batch --funcall buttercup-run-discover "
+                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "deck of jacks\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-namespace)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd "emacs --batch --funcall buttercup-run-discover"))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-all)))
+
+    (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (should-error (testrun-file) :type 'user-error))))
+
+(ert-deftest test-testrun-buttercup-run-cask ()
+  "Sort of an integration test for the compile command of buttercup."
+  (let ((testrun-runners `((buttercup-cask . ,(alist-get 'buttercup-cask testrun-runners))))
+        (testrun-mode-alist '((emacs-lisp-mode . buttercup-cask))))
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "cask exec buttercup --pattern=\"^blackjack--deal-"
+                                            "new-hand with a deck of jacks player has 20, shows "
+                                            "hand actions$\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-nearest)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "cask exec buttercup "
+                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "deck of jacks\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-namespace)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd "cask exec buttercup"))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-all)))
+
+    (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (should-error (testrun-file) :type 'user-error))))
+
+(ert-deftest test-testrun-buttercup-run-eldev ()
+  "Sort of an integration test for the compile command of buttercup."
+  (let ((testrun-runners `((buttercup-eldev . ,(alist-get 'buttercup-eldev testrun-runners))))
+        (testrun-mode-alist '((emacs-lisp-mode . buttercup-eldev))))
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "eldev test -- --pattern=\"^blackjack--deal-"
+                                            "new-hand with a deck of jacks player has 20, shows "
+                                            "hand actions$\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-nearest)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd (concat "eldev test -- "
+                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "deck of jacks\"")))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-namespace)))
+
+    (cl-letf (((symbol-function 'compile)
+               (lambda (cmd commint)
+                 (should (equal cmd "eldev test --"))
+                 (should-not commint))))
+      (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (testrun-all)))
+
+    (test-testrun-setup
+        :mode emacs-lisp-mode
+        :asset "buttercup-example.el"
+        :position 7023
+        :body
+        (should-error (testrun-file) :type 'user-error))))
+
 (provide 'testrun-buttercup-test)
 ;;; testrun-buttercup-test.el ends here

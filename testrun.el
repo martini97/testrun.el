@@ -45,7 +45,13 @@
 
 (defcustom testrun-runners '((pytest . ("pytest"))
                              (jest . (npx "jest"))
-                             (ert . ("cask" "exec" "ert-runner")))
+                             (ert . ("cask" "exec" "ert-runner"))
+                             (buttercup-cask . ("cask" "exec" "buttercup"))
+                             (buttercup-emacs . ("emacs"
+                                                 "--batch"
+                                                 "--funcall"
+                                                 "buttercup-run-discover"))
+                             (buttercup-eldev . ("eldev" "test" "--")))
   "Alist of test runner commands.
 
 Each key identifies a test runner, and the value should be the test runner
@@ -84,7 +90,10 @@ the local node_modules if it's available."
 (defvar testrun-runner-function-alist
   '((pytest . testrun-pytest-get-test)
     (jest . testrun-jest-get-test)
-    (ert . testrun-ert-get-test)))
+    (ert . testrun-ert-get-test)
+    (buttercup-cask . testrun-buttercup-get-test)
+    (buttercup-eldev . testrun-buttercup-get-test)
+    (buttercup-emacs . testrun-buttercup-get-test)))
 
 (defun testrun--get-test (type runner)
   "Get test path for TYPE and RUNNER."
