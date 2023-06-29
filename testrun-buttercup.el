@@ -32,8 +32,7 @@
 
 ;;; Code:
 
-(require 'seq)
-(require 'thingatpt)
+(require 'testrun-sexp)
 (require 'testrun-core)
 
 (defcustom testrun-buttercup-keywords '((namespace . (describe))
@@ -43,56 +42,23 @@
                 :value-type (repeat (symbol :tag "Keyword")))
   :group 'testrun)
 
-(defun testrun-buttercup--beginning-of-thing-at-point-p (thing)
-  "Predicate to check if current point is at the beginning of THING."
-  (equal (point) (car (save-excursion
-                        (unless (eq thing 'sexp)
-                          (forward-char))
-                        (bounds-of-thing-at-point thing)))))
-
-(defun testrun-buttercup--get-list-at-point ()
-  "Return the list at point."
-  (read
-   (if (testrun-buttercup--beginning-of-thing-at-point-p 'list)
-       (save-excursion
-         (forward-char)
-         (thing-at-point 'list))
-     (thing-at-point 'list))))
-
-(defun testrun-buttercup--sexp-parents ()
-  "Return a list with the all the list parents of the current point.
-
-If point is at the beginning of a list the it will also be included."
-  (let ((parents (if (testrun-buttercup--beginning-of-thing-at-point-p 'list)
-                     (list (testrun-buttercup--get-list-at-point))
-                   '())))
-    (save-excursion
-      (condition-case _err
-          (while t
-            (backward-up-list)
-            (push (testrun-buttercup--get-list-at-point) parents))
-        (scan-error nil)))
-    parents))
-
-(defun testrun-buttercup--filter-by-keyword (lists keywords)
-  "Filter LISTS that begin with KEYWORDS."
-  (seq-filter (lambda (l) (memq (car l) keywords)) lists))
-
 (defun testrun-buttercup--get-test-pattern (scope)
   "Return the pattern for the test with SCOPE."
-  (string-join
-   (seq-map #'cadr (testrun-buttercup--filter-by-keyword
-                    (testrun-buttercup--sexp-parents)
-                    (alist-get scope testrun-buttercup-keywords)))
-   " "))
+  (testrun-core--get-test-regex
+   (string-join
+    (seq-map #'cadr (testrun-sexp--filter-car-memq
+                     (testrun-sexp--parents)
+                     (alist-get scope testrun-buttercup-keywords)))
+    " ")
+   (eq scope 'nearest)))
 
 ;;;###autoload
 (defun testrun-buttercup-get-test (scope)
   "Get the buttercup test specifier string for the SCOPE."
   (pcase scope
     ("file" (user-error "Buttercup does not support the \"%s\" scope" scope))
-    ("nearest" (concat "--pattern \"^" (testrun-buttercup--get-test-pattern 'nearest) "$\""))
-    ("namespace" (concat "--pattern \""(testrun-buttercup--get-test-pattern 'namespace) "\""))
+    ("nearest" (concat "--pattern " (testrun-buttercup--get-test-pattern 'nearest)))
+    ("namespace" (concat "--pattern " (testrun-buttercup--get-test-pattern 'namespace)))
     ("all" nil)))
 
 (provide 'testrun-buttercup)
