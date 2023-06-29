@@ -46,11 +46,12 @@
 (defcustom testrun-runners '((pytest . ("pytest"))
                              (jest . (npx "jest"))
                              (ert . ("cask" "exec" "ert-runner"))
-                             (buttercup-cask . ("cask" "exec" "buttercup"))
+                             (buttercup-cask . ("cask" "exec" "buttercup" "-L" "."))
                              (buttercup-emacs . ("emacs"
                                                  "--batch"
-                                                 "--funcall"
-                                                 "buttercup-run-discover"))
+                                                 "--directory" "."
+                                                 "--funcall" "package-initialize"
+                                                 "--funcall" "buttercup-run-discover"))
                              (buttercup-eldev . ("eldev" "test" "--")))
   "Alist of test runner commands.
 
