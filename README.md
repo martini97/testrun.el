@@ -41,6 +41,7 @@ This package is not on any of the Emacs archives, but it can be installed with e
   :preface
   ;; this will allow you to override the runners on your .dir-locals.el
   (put 'testrun-runners 'safe-local-variable #'listp)
+  (put 'testrun-mode-alist 'safe-local-variable #'listp)
 
   (global-set-key
    (kbd "C-c t")
