@@ -156,13 +156,13 @@
       (should-error (testrun-buttercup-get-test "file")
                     :type 'user-error)
       (should (equal (testrun-buttercup-get-test "nearest")
-                     (concat "--pattern=\"^"
+                     (concat "--pattern \"^"
                              "blackjack--deal-new-hand "
                              "with a deck of jacks "
                              "player has 20, shows hand actions"
                              "$\"")))
       (should (equal (testrun-buttercup-get-test "namespace")
-                     (concat "--pattern=\""
+                     (concat "--pattern \""
                              "blackjack--deal-new-hand "
                              "with a deck of jacks"
                              "\"")))
@@ -175,7 +175,7 @@
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "emacs --batch --funcall buttercup-run-discover "
-                                            "--pattern=\"^blackjack--deal-new-hand with a "
+                                            "--pattern \"^blackjack--deal-new-hand with a "
                                             "deck of jacks player has 20, shows hand actions$\"")))
                  (should-not commint))))
       (test-testrun-setup
@@ -188,7 +188,7 @@
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "emacs --batch --funcall buttercup-run-discover "
-                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "--pattern \"blackjack--deal-new-hand with a "
                                             "deck of jacks\"")))
                  (should-not commint))))
       (test-testrun-setup
@@ -222,7 +222,7 @@
         (testrun-mode-alist '((emacs-lisp-mode . buttercup-cask))))
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
-                 (should (equal cmd (concat "cask exec buttercup --pattern=\"^blackjack--deal-"
+                 (should (equal cmd (concat "cask exec buttercup --pattern \"^blackjack--deal-"
                                             "new-hand with a deck of jacks player has 20, shows "
                                             "hand actions$\"")))
                  (should-not commint))))
@@ -236,7 +236,7 @@
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "cask exec buttercup "
-                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "--pattern \"blackjack--deal-new-hand with a "
                                             "deck of jacks\"")))
                  (should-not commint))))
       (test-testrun-setup
@@ -270,7 +270,7 @@
         (testrun-mode-alist '((emacs-lisp-mode . buttercup-eldev))))
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
-                 (should (equal cmd (concat "eldev test -- --pattern=\"^blackjack--deal-"
+                 (should (equal cmd (concat "eldev test -- --pattern \"^blackjack--deal-"
                                             "new-hand with a deck of jacks player has 20, shows "
                                             "hand actions$\"")))
                  (should-not commint))))
@@ -284,7 +284,7 @@
     (cl-letf (((symbol-function 'compile)
                (lambda (cmd commint)
                  (should (equal cmd (concat "eldev test -- "
-                                            "--pattern=\"blackjack--deal-new-hand with a "
+                                            "--pattern \"blackjack--deal-new-hand with a "
                                             "deck of jacks\"")))
                  (should-not commint))))
       (test-testrun-setup

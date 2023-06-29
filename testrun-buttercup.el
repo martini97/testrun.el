@@ -91,8 +91,8 @@ If point is at the beginning of a list the it will also be included."
   "Get the buttercup test specifier string for the SCOPE."
   (pcase scope
     ("file" (user-error "Buttercup does not support the \"%s\" scope" scope))
-    ("nearest" (concat "--pattern=\"^" (testrun-buttercup--get-test-pattern 'nearest) "$\""))
-    ("namespace" (concat "--pattern=\""(testrun-buttercup--get-test-pattern 'namespace) "\""))
+    ("nearest" (concat "--pattern \"^" (testrun-buttercup--get-test-pattern 'nearest) "$\""))
+    ("namespace" (concat "--pattern \""(testrun-buttercup--get-test-pattern 'namespace) "\""))
     ("all" nil)))
 
 (provide 'testrun-buttercup)
