@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'syntax)
 (require 'thingatpt)
 
 (defun testrun-sexp--beginning-of-thing-at-point-p (thing)
@@ -49,6 +50,10 @@
          (thing-at-point 'list))
      (thing-at-point 'list))))
 
+(defun testrun-sexp--current-depth ()
+  "Get current point depth in parentheses, counting from 0."
+  (car (syntax-ppss)))
+
 (defun testrun-sexp--parents ()
   "Return a list with all the parent sexps of the current point.
 
@@ -57,11 +62,9 @@ If point is at the beginning of a list then it will also be included."
                      (list (testrun-sexp--read-list-at-point))
                    '())))
     (save-excursion
-      (condition-case _err
-          (while t
-            (backward-up-list)
-            (push (testrun-sexp--read-list-at-point) parents))
-        (scan-error nil)))
+      (cl-loop for i from 0 below (testrun-sexp--current-depth) do
+               (backward-up-list)
+               (push (testrun-sexp--read-list-at-point) parents)))
     parents))
 
 (defun testrun-sexp--filter-car-memq (lists wanted)
