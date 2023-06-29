@@ -3,6 +3,11 @@
 ;; Copyright (C) 2023 Alessandro Martini <martini97@protonmail.ch>
 
 ;; Author: Alessandro Martini <martini97@protonmail.ch>
+;; Mantainer: Alessandro Martini <martini97@protonmail.ch>
+;; Version: 0.1.1
+;; Package-Requires: ((emacs "29"))
+;; Keywords: tests convenience
+;; Homepage: https://github.com/martini97/testrun.el
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -20,6 +25,10 @@
 ;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Support for Buttercup tests.
+;; NOTE: it seems that Buttercup does not offer an option to run all tests in a file,
+;; so for now I'm not implementing it.
 
 ;;; Code:
 
