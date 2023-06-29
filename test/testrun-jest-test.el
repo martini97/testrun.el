@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'cl-macs)
+(require 'testrun)
+(require 'testrun-jest)
 
 (ert-deftest test-testrun-jest-get-test-nearest ()
   "Verify expected test paths with the \"nearest\" scope."

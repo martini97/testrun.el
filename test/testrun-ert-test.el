@@ -26,11 +26,8 @@
 ;;; Code:
 
 (require 'cl-macs)
-
-(ert-deftest test-testrun--ert-get-test-regex ()
-  "Tests for `testrun-ert--get-test-regex'."
-  (should (equal (testrun-ert--get-test-regex "foo-bar")
-                 "'^foo-bar$'")))
+(require 'testrun)
+(require 'testrun-ert)
 
 (ert-deftest test-testrun-ert-get-test ()
   "Verify the `testrun-ert-get-test' function.
@@ -70,7 +67,7 @@ regex shenanigans, all tests are done here."
                   cmd
                   (concat
                    ert-cmd " " test-filename " -p "
-                   (testrun-ert--get-test-regex test-name))))
+                   (testrun-core--get-test-regex test-name t))))
                 (should-not commint))))
           (testrun-nearest))))))
 

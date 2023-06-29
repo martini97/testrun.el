@@ -94,6 +94,13 @@ otherwise returns nil."
   (when-let ((known (assoc root testrun-core--last-tests)))
     (cdr known)))
 
+(defun testrun-core--get-test-regex (test-pattern exactp)
+  "Convert TEST-PATTERN into a regex that only matches it.
+When EXACTP then include bol and eol pattern."
+  (if exactp
+      (format "'^%s$'" test-pattern)
+    (format "'%s'" test-pattern)))
+
 (provide 'testrun-core)
 ;;; testrun-core.el ends here
 

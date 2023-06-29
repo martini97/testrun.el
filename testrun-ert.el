@@ -31,28 +31,15 @@
 ;;; Code:
 
 (require 'testrun-core)
-
-(defun testrun-ert--get-test-regex (test-name)
-  "Convert TEST-NAME into a regex that only matches it.
-
-This is necessary to avoid ERT running tests with names that are a
-superset of other test names, like \"ert-test-foo\" and \"ert-test-foo-bar\"."
-  (format "'^%s$'" test-name))
+(require 'testrun-sexp)
 
 (defun testrun-ert--get-test-name-at-point ()
-  "Get the name of the current test at point.
-
-If the point is not within a test, than throw user error.
-The logic of this function was borrowed from
-https://github.com/tonini/overseer.el"
-  (save-excursion
-    (end-of-defun)
-    (beginning-of-defun)
-    (if-let* ((fn-raw (read (current-buffer)))
-              (fn-name (car fn-raw))
-              ((string= "ert-deftest" fn-name)))
-        (symbol-name (cadr fn-raw))
-      (user-error "No test at point"))))
+  "Get the name of the current test at point."
+  (if-let ((test-at-point (car (seq-map #'cadr (testrun-sexp--filter-car-memq
+                                                (testrun-sexp--parents)
+                                                '(ert-deftest))))))
+      test-at-point
+    (user-error "No test at point")))
 
 ;;;###autoload
 (defun testrun-ert-get-test (scope)
@@ -60,8 +47,8 @@ https://github.com/tonini/overseer.el"
   (string-join
    (let ((filename (testrun-core--file-name)))
      (pcase scope
-       ("nearest" (list filename "-p" (testrun-ert--get-test-regex
-                                       (testrun-ert--get-test-name-at-point))))
+       ("nearest" (list filename "-p" (testrun-core--get-test-regex
+                                       (testrun-ert--get-test-name-at-point) t)))
        ("namespace" (user-error "ERT does not support the \"%s\" scope" scope))
        ("file" (list filename))
        ("all" nil)))

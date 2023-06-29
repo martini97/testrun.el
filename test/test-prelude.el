@@ -28,11 +28,6 @@
       python-indent-guess-indent-offset nil)
 
 (require 'cl-lib)
-(require 'testrun)
-(require 'testrun-treesit)
-(require 'testrun-pytest)
-(require 'testrun-jest)
-(require 'testrun-ert)
 
 (cl-defmacro test-testrun-treesit-setup (&rest args)
   "Setup test buffer for treesiter with ARGS.

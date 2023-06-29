@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'cl-macs)
+(require 'testrun)
+(require 'testrun-pytest)
 
 (ert-deftest test-testrun--get-test ()
   "Tests for `testrun--get-test'."
