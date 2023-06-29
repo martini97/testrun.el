@@ -46,7 +46,8 @@
 (defun testrun-buttercup--beginning-of-thing-at-point-p (thing)
   "Predicate to check if current point is at the beginning of THING."
   (equal (point) (car (save-excursion
-                        (forward-char)
+                        (unless (eq thing 'sexp)
+                          (forward-char))
                         (bounds-of-thing-at-point thing)))))
 
 (defun testrun-buttercup--get-list-at-point ()
@@ -90,7 +91,7 @@ If point is at the beginning of a list the it will also be included."
   "Get the buttercup test specifier string for the SCOPE."
   (pcase scope
     ("file" (user-error "Buttercup does not support the \"%s\" scope" scope))
-    ("nearest" (concat "--pattern=\"^" (testrun-buttercup--get-test-pattern 'nearest) "\"$"))
+    ("nearest" (concat "--pattern=\"^" (testrun-buttercup--get-test-pattern 'nearest) "$\""))
     ("namespace" (concat "--pattern=\""(testrun-buttercup--get-test-pattern 'namespace) "\""))
     ("all" nil)))
 
