@@ -10,11 +10,14 @@ This package uses treesitter for finding the path to the current test and/or nam
 
 Testrun.el allows you to run tests using Emacs `compile` feature, hanlding each test runner abstraction. Currently the following test runners are supported:
 
-| Language           | Test Runner             | Identifier |
-| ------------------ | ----------------------- | ---------- |
-| Python             | Pytest                  | `pytest`   |
-| Javascript (js,ts) | Jest, React Testscripts | `jest`     |
-| Emacs Lisp         | ERT                     | `ert`      |
+| Language           | Test Runner             | Identifier        |
+| ------------------ | ----------------------- | ----------------- |
+| Python             | Pytest                  | `pytest`          |
+| Javascript (js,ts) | Jest, React Testscripts | `jest`            |
+| Emacs Lisp         | ERT                     | `ert`             |
+| Emacs Lisp         | Buttercup (with Emacs)  | `buttercup-emacs` |
+| Emacs Lisp         | Buttercup (with Cask)   | `buttercup-cask`  |
+| Emacs Lisp         | Buttercup (with Eldev)  | `buttercup-eldev` |
 
 ## Available commands
 
@@ -49,4 +52,18 @@ This package is not on any of the Emacs archives, but it can be installed with e
      "a" 'testrun-all
      "l" 'testrun-last)))
 
+```
+
+## Using a different runner
+
+If you would like to change the a mode runner for a specific project, for example to use `buttercup-cask`
+to run elisp tests instead of ert, then you can add the following to the project `.dir-locals.el`:
+
+```
+((emacs-lisp-mode . ((testrun-mode-alist . ((emacs-lisp-mode . buttercup-cask))))))
+```
+
+If you want to change it for all projects, you can add the following to your config, after loading testrun:
+```
+(setf (cdr (rassoc 'ert testrun-mode-alist)) 'buttercup-cask)
 ```
