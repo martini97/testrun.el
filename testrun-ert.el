@@ -31,21 +31,15 @@
 ;;; Code:
 
 (require 'testrun-core)
+(require 'testrun-sexp)
 
 (defun testrun-ert--get-test-name-at-point ()
-  "Get the name of the current test at point.
-
-If the point is not within a test, than throw user error.
-The logic of this function was borrowed from
-https://github.com/tonini/overseer.el"
-  (save-excursion
-    (end-of-defun)
-    (beginning-of-defun)
-    (if-let* ((fn-raw (read (current-buffer)))
-              (fn-name (car fn-raw))
-              ((string= "ert-deftest" fn-name)))
-        (symbol-name (cadr fn-raw))
-      (user-error "No test at point"))))
+  "Get the name of the current test at point."
+  (if-let ((test-at-point (car (seq-map #'cadr (testrun-sexp--filter-car-memq
+                                                (testrun-sexp--parents)
+                                                '(ert-deftest))))))
+      test-at-point
+    (user-error "No test at point")))
 
 ;;;###autoload
 (defun testrun-ert-get-test (scope)
