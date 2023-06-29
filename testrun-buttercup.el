@@ -76,8 +76,6 @@ If point is at the beginning of a list the it will also be included."
                     (alist-get scope testrun-buttercup-keywords)))
    " "))
 
-;; cask emacs --batch --directory . --funcall buttercup-run-discover --pattern "^blackjack--pay-player-hand with a player hand value of 18 collects losing player hands$"
-
 ;;;###autoload
 (defun testrun-buttercup-get-test (scope)
   "Get the buttercup test specifier string for the SCOPE."
