@@ -138,5 +138,12 @@ or to the executable itself, ie:
                    '("root" nil)))
     (should-not (testrun-core--get-last "/not/remember"))))
 
+(ert-deftest test-testrun-core--get-test-regex ()
+  "Tests for `testrun-core--get-test-regex'."
+  (should (equal (testrun-core--get-test-regex "foo-bar" t)
+                 "'^foo-bar$'"))
+  (should (equal (testrun-core--get-test-regex "foo-bar" nil)
+                 "'foo-bar'")))
+
 (provide 'testrun-core-test)
 ;;; testrun-core-test.el ends here

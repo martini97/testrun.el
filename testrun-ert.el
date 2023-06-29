@@ -32,13 +32,6 @@
 
 (require 'testrun-core)
 
-(defun testrun-ert--get-test-regex (test-name)
-  "Convert TEST-NAME into a regex that only matches it.
-
-This is necessary to avoid ERT running tests with names that are a
-superset of other test names, like \"ert-test-foo\" and \"ert-test-foo-bar\"."
-  (format "'^%s$'" test-name))
-
 (defun testrun-ert--get-test-name-at-point ()
   "Get the name of the current test at point.
 
@@ -60,8 +53,8 @@ https://github.com/tonini/overseer.el"
   (string-join
    (let ((filename (testrun-core--file-name)))
      (pcase scope
-       ("nearest" (list filename "-p" (testrun-ert--get-test-regex
-                                       (testrun-ert--get-test-name-at-point))))
+       ("nearest" (list filename "-p" (testrun-core--get-test-regex
+                                       (testrun-ert--get-test-name-at-point) t)))
        ("namespace" (user-error "ERT does not support the \"%s\" scope" scope))
        ("file" (list filename))
        ("all" nil)))
